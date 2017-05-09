@@ -1,8 +1,17 @@
 const express = require('express')
 const mysql = require('mysql')
 const cors = require('cors')
+const morgan = require('morgan')
+const bodyParser = require('body-parser')
 
 const app = express()
+const logger = morgan('dev')
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
 
 app.use(cors())
 
@@ -13,68 +22,56 @@ const connection = mysql.createConnection({
   database : 'epl'
 });
 
+connection.connect()
+
 app.get('/clubs', (req, res) => {
-  connection.connect()
   connection.query('SELECT * from club', function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
-  connection.end()
 })
 
 app.get('/clubs/:id', (req, res) => {
-  connection.connect()
   connection.query('SELECT * from club where id =' + req.params.id, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
-  connection.end()
 })
 
 
 app.get('/players/:id', (req, res) => {
-  connection.connect()
   connection.query('SELECT * from player where id =' + req.params.id, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
-  connection.end()
 })
 
 app.get('/managers', (req, res) => {
-  connection.connect()
   connection.query('SELECT * from manager', function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
-  connection.end()
 })
 
 app.get('/managers/:id', (req, res) => {
-  connection.connect()
   connection.query('SELECT * from manager where id =' + req.params.id, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
-  connection.end()
 })
 
 app.get('/fixtures', (req, res) => {
-  connection.connect()
   connection.query('SELECT * from fixture', function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
-  connection.end()
 })
 
 app.get('/fixtures:id', (req, res) => {
-  connection.connect()
   connection.query('SELECT * from fixture where id=' + req.params.id, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
-  connection.end()
 })
 
 const applyWhere = (query, tableName) => {
@@ -91,11 +88,10 @@ const whereByAttrs = (query = {}, tableName = '') =>
 
 app.get('/players', (req, res) => {
   const sql = applyWhere(req.query, 'player')
-  connection.connect()
-  connection.query(sql, (err, clubs) => {
+  connection.query(sql, (err, players) => {
     console.log(sql)
     if(err) return res.json({ message: err.stack })
-    const result = { clubs, page: 1, size: clubs.length }
+    const result = { players, page: 1, size: players.length }
     res.json(result)
   })
 })
