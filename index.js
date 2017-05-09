@@ -10,14 +10,14 @@ const connection = mysql.createConnection({
   database : 'epl'
 });
 
-app.get('/clubs', (req, res) => {
-  connection.connect()
-  connection.query('SELECT * from club', function (err, rows, fields) {
-    if (err) throw err
-    res.json(rows)
-  })
-  connection.end()
-})
+// app.get('/clubs', (req, res) => {
+//   connection.connect()
+//   connection.query('SELECT * from club', function (err, rows, fields) {
+//     if (err) throw err
+//     res.json(rows)
+//   })
+//   connection.end()
+// })
 
 app.get('/clubs/:id', (req, res) => {
   connection.connect()
@@ -111,6 +111,27 @@ app.get('/players', (req, res) => {
     const result = { clubs, page: 1, size: clubs.length } 
     res.json(result) 
   }) 
+})
+
+app.get('/results', (req, res) => {
+  connection.connect()
+  connection.query(`select f.id as 'FIXTURE ID' , f.date as DATE , h.name as HOME , a.name as AWAY , r.home_score AS 'HOME GOAL' , r.away_score as 'AWAY GOAL' 
+from fixture f INNER JOIN result r on f.id = r.fixture_id ,(select name,id from club) h,(select name,id from club) a 
+where f.home_name = h.id and f.away_name = a.id 
+ORDER BY f.id DESC`, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+  connection.end()
+})
+
+app.delete('/players', (req, res) =>{
+  connection.connect()
+  connection.query(``,function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+  connection.end()
 })
 
 app.listen(8000, () => console.log('Server is running at http://localhost:8000'))
