@@ -5,7 +5,7 @@ const morgan = require('morgan')
 const bodyParser = require('body-parser')
 
 const { host, user, password, database, port } = require('./config')
-const { applyWhere, whereByAttrs } = require('./libs')
+const { makeAnSQLStatement } = require('./libs')
 
 const app = express()
 const logger = morgan('dev')
@@ -19,7 +19,9 @@ const connection = mysql.createConnection({ host, user, password, database });
 connection.connect()
 
 app.get('/clubs', (req, res) => {
-  connection.query('SELECT * from club', function (err, rows, fields) {
+  const sql = makeAnSQLStatement(req.query, 'club')
+  console.log(sql)
+  connection.query(sql, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
@@ -55,7 +57,9 @@ app.delete('/players/:id', (req, res) => {
 })
 
 app.get('/managers', (req, res) => {
-  connection.query('SELECT * from manager', function (err, rows, fields) {
+  const sql = makeAnSQLStatement(req.query, 'manager')
+  console.log(sql)
+  connection.query(sql, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
@@ -76,20 +80,22 @@ app.delete('/managers/:id', (req, res) => {
 })
 
 app.get('/fixtures', (req, res) => {
-  connection.query('SELECT * from fixture', function (err, rows, fields) {
+  const sql = makeAnSQLStatement(req.query, 'fixture')
+  console.log(sql)
+  connection.query(sql, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
 })
 
-app.get('/fixtures:id', (req, res) => {
+app.get('/fixtures/:id', (req, res) => {
   connection.query('SELECT * from fixture where id=' + req.params.id, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
 })
 
-app.delete('/fixtures:id', (req, res) => {
+app.delete('/fixtures/:id', (req, res) => {
   connection.query('DELETE * from fixture where id=' + req.params.id, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
@@ -97,9 +103,9 @@ app.delete('/fixtures:id', (req, res) => {
 })
 
 app.get('/players', (req, res) => {
-  const sql = applyWhere(req.query, 'player')
+  const sql = makeAnSQLStatement(req.query, 'player')
+  console.log(sql)
   connection.query(sql, (err, players) => {
-    console.log(sql)
     if(err) return res.json({ message: err.stack })
     const result = { players, page: 1, size: players.length }
     res.json(result)
