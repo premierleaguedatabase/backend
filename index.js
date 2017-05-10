@@ -5,20 +5,16 @@ const morgan = require('morgan')
 const bodyParser = require('body-parser')
 
 const { host, user, password, database, port } = require('./config')
+const { applyWhere, whereByAttrs } = require('./libs')
 
 const app = express()
 const logger = morgan('dev')
 
-// parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
-
-// parse application/json
 app.use(bodyParser.json())
-
 app.use(cors())
 
 const connection = mysql.createConnection({ host, user, password, database });
-
 
 connection.connect()
 
@@ -99,18 +95,6 @@ app.delete('/fixtures:id', (req, res) => {
     res.json(rows)
   })
 })
-
-const applyWhere = (query, tableName) => {
-  const isQueryExist = Object.keys(query).length === 0
-  return isQueryExist ? `SELECT * FROM ${tableName}`: whereByAttrs(query, tableName) + `LIMIT 10`
-}
-
-const whereByAttrs = (query = {}, tableName = '') =>
-  Object.keys(query)
-    .reduce(
-      (prev, key, index) => prev.concat(`${(index !== 0) ? 'AND' : ''} ${tableName}.${key} = ${!parseInt(query[key]) ? `"${query[key]}"` : query[key]}`),
-      `SELECT * FROM ${tableName} WHERE `
-    )
 
 app.get('/players', (req, res) => {
   const sql = applyWhere(req.query, 'player')
