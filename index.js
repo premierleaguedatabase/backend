@@ -13,6 +13,7 @@ const logger = morgan('dev')
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use(cors())
+app.use(logger)
 
 const connection = mysql.createConnection({ host, user, password, database });
 
@@ -80,7 +81,19 @@ app.delete('/managers/:id', (req, res) => {
 })
 
 app.get('/fixtures', (req, res) => {
-  const sql = makeAnSQLStatement(req.query, 'fixture')
+  let sql = `
+    SELECT
+      f.id as id, f.date as date, f.home_id as homeId, f.away_id as awayId, home_club.name as homeName, away_club.name as awayName
+    FROM
+      fixture f
+    INNER JOIN
+      club AS home_club ON home_club.id = f.home_id
+    INNER JOIN
+      club As away_club ON away_club.id = f.away_id
+  `
+  isQueryHaveAPageAndLimit(req.query)
+    ? sql += applyLimitAndOffset(req.query)
+    : sql
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
     if (err) throw err
@@ -114,7 +127,7 @@ app.get('/players', (req, res) => {
 
 app.get('/results', (req, res) => {
   let sql = `
-    SELECT f.id AS 'fixture_id' , f.date AS date , h.name AS home_name , a.name AS away_name , r.home_score AS 'home_goal' , r.away_score AS 'away_goal'
+    SELECT f.id AS 'fixtureId' , f.date AS date , h.id as 'homeId', h.name AS homeName , a.name AS awayName, a.id as 'awayId', r.home_score AS 'homeGoal' , r.away_score AS 'awayGoal'
     FROM fixture f INNER JOIN  result r ON f.id = r.fixture_id , (SELECT name, id FROM club) h, (SELECT name, id FROM club) a
     WHERE f.home_id = h.id AND f.away_id = a.id
     ORDER BY f.id DESC
@@ -323,7 +336,8 @@ LIMIT 1000`, function (err, rows, fields) {
 })
 
 app.get('/points', (req, res) => {
-  connection.query(`SELECT win.home as Clubs, win.Wins , draw.Draws , loss.losses , (win.Wins * 3)+draw.Draws as Points
+  connection.query(`
+SELECT win.id , win.home as Clubs, win.Wins , draw.Draws , loss.losses , (win.Wins * 3)+draw.Draws as Points
 from
 (select home.home_id as home ,home.home_draw + away.away_draw as Draws
 from (SELECT club.name as home_id, IFNULL(home_draw , 0) as home_draw FROM
@@ -352,8 +366,8 @@ ORDER BY away_draw DESC) away
 where home.home_id = away.away_id
 ORDER BY Draws DESC) draw ,
 
-(select home.home_id as home,home.home_win + away.away_win as Wins
-from (SELECT club.name as home_id, IFNULL(home_win , 0) as home_win FROM
+(select home.id , home.home_id as home,home.home_win + away.away_win as Wins
+from (SELECT club.id as id , club.name as home_id, IFNULL(home_win , 0) as home_win FROM
 (select club.name as home_id , COUNT(fixture.home_id) as home_win
 from fixture,result,club
 where fixture.id = result.fixture_id
@@ -408,7 +422,17 @@ ORDER BY Losses DESC) loss
 
 where win.home = loss.home and win.home = draw.home and loss.home = draw.home
 
-order by Points DESC`, function (err, rows, fields) {
+order by Points DESC
+`, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.get('/referees', (req, res) => {
+  const sql = makeAnSQLStatement(req.query, 'referee')
+  console.log(sql)
+  connection.query(sql, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
