@@ -5,7 +5,7 @@ const morgan = require('morgan')
 const bodyParser = require('body-parser')
 
 const { host, user, password, database, port } = require('./config')
-const { makeAnSQLStatement } = require('./libs')
+const { makeAnSQLStatement, isQueryHaveAPageAndLimit, applyLimitAndOffset } = require('./libs')
 
 const app = express()
 const logger = morgan('dev')
@@ -113,10 +113,16 @@ app.get('/players', (req, res) => {
 })
 
 app.get('/results', (req, res) => {
-  connection.query(`select f.id as 'FIXTURE ID' , f.date as DATE , h.name as HOME , a.name as AWAY , r.home_score AS 'HOME GOAL' , r.away_score as 'AWAY GOAL'
-from fixture f INNER JOIN  result r on f.id = r.fixture_id ,(select name,id from club) h,(select name,id from club) a
-where f.home_id = h.id and f.away_id = a.id
-ORDER BY f.id DESC`, function (err, rows, fields) {
+  let sql = `
+    SELECT f.id AS 'fixture_id' , f.date AS date , h.name AS home_name , a.name AS away_name , r.home_score AS 'home_goal' , r.away_score AS 'away_goal'
+    FROM fixture f INNER JOIN  result r ON f.id = r.fixture_id , (SELECT name, id FROM club) h, (SELECT name, id FROM club) a
+    WHERE f.home_id = h.id AND f.away_id = a.id
+    ORDER BY f.id DESC
+  `
+  isQueryHaveAPageAndLimit(req.query)
+    ? sql += applyLimitAndOffset(req.query)
+    : sql
+  connection.query(sql, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })

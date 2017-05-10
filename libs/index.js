@@ -33,5 +33,7 @@ const applyWhereByAttrs = (attrs = {}, tableName = '') =>
 
 
 module.exports = {
-  makeAnSQLStatement
+  makeAnSQLStatement,
+  isQueryHaveAPageAndLimit,
+  applyLimitAndOffset
 }
