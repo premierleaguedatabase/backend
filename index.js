@@ -4,6 +4,8 @@ const cors = require('cors')
 const morgan = require('morgan')
 const bodyParser = require('body-parser')
 
+const { host, user, password, database, port } = require('./config')
+
 const app = express()
 const logger = morgan('dev')
 
@@ -15,12 +17,7 @@ app.use(bodyParser.json())
 
 app.use(cors())
 
-const connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'root',
-  password : 'HjiMV4Z6aM:J',
-  database : 'epl'
-});
+const connection = mysql.createConnection({ host, user, password, database });
 
 
 connection.connect()
@@ -330,90 +327,90 @@ LIMIT 1000`, function (err, rows, fields) {
 })
 
 app.get('/points', (req, res) => {
-  connection.query(`SELECT win.home as Clubs, win.Wins , draw.Draws , loss.losses , (win.Wins * 3)+draw.Draws as Points 
-from 
-(select home.home_id as home ,home.home_draw + away.away_draw as Draws 
-from (SELECT club.name as home_id, IFNULL(home_draw , 0) as home_draw FROM 
-(select club.name as home_id , COUNT(fixture.home_id) as home_draw 
-from fixture,result,club 
-where fixture.id = result.fixture_id 
-and club.id = fixture.home_id 
-AND result.home_score = result.away_score 
-GROUP by club.id 
-order by home_draw DESC) home RIGHT JOIN club ON club.name = home.home_id 
+  connection.query(`SELECT win.home as Clubs, win.Wins , draw.Draws , loss.losses , (win.Wins * 3)+draw.Draws as Points
+from
+(select home.home_id as home ,home.home_draw + away.away_draw as Draws
+from (SELECT club.name as home_id, IFNULL(home_draw , 0) as home_draw FROM
+(select club.name as home_id , COUNT(fixture.home_id) as home_draw
+from fixture,result,club
+where fixture.id = result.fixture_id
+and club.id = fixture.home_id
+AND result.home_score = result.away_score
+GROUP by club.id
+order by home_draw DESC) home RIGHT JOIN club ON club.name = home.home_id
 
-GROUP By club.name 
-ORDER BY home_draw DESC) home , 
+GROUP By club.name
+ORDER BY home_draw DESC) home ,
 
-(SELECT club.name as away_id, IFNULL(away_draw, 0) as away_draw FROM 
-(select club.name as home_id , COUNT(fixture.away_id) as away_draw 
-from fixture,result,club 
-where fixture.id = result.fixture_id 
-and club.id = fixture.away_id 
-AND result.away_score = result.home_score 
-GROUP by club.id 
-order by away_draw DESC) home RIGHT JOIN club ON club.name = home.home_id 
+(SELECT club.name as away_id, IFNULL(away_draw, 0) as away_draw FROM
+(select club.name as home_id , COUNT(fixture.away_id) as away_draw
+from fixture,result,club
+where fixture.id = result.fixture_id
+and club.id = fixture.away_id
+AND result.away_score = result.home_score
+GROUP by club.id
+order by away_draw DESC) home RIGHT JOIN club ON club.name = home.home_id
 
-GROUP By club.name 
-ORDER BY away_draw DESC) away 
-where home.home_id = away.away_id 
-ORDER BY Draws DESC) draw , 
+GROUP By club.name
+ORDER BY away_draw DESC) away
+where home.home_id = away.away_id
+ORDER BY Draws DESC) draw ,
 
-(select home.home_id as home,home.home_win + away.away_win as Wins 
-from (SELECT club.name as home_id, IFNULL(home_win , 0) as home_win FROM 
-(select club.name as home_id , COUNT(fixture.home_id) as home_win 
-from fixture,result,club 
-where fixture.id = result.fixture_id 
-and club.id = fixture.home_id 
-AND result.home_score > result.away_score 
-GROUP by club.id 
-order by home_win DESC) home RIGHT JOIN club ON club.name = home.home_id 
+(select home.home_id as home,home.home_win + away.away_win as Wins
+from (SELECT club.name as home_id, IFNULL(home_win , 0) as home_win FROM
+(select club.name as home_id , COUNT(fixture.home_id) as home_win
+from fixture,result,club
+where fixture.id = result.fixture_id
+and club.id = fixture.home_id
+AND result.home_score > result.away_score
+GROUP by club.id
+order by home_win DESC) home RIGHT JOIN club ON club.name = home.home_id
 
-GROUP By club.name 
-ORDER BY home_win DESC) home , 
+GROUP By club.name
+ORDER BY home_win DESC) home ,
 
-(SELECT home.home_id as home , club.name as away_id, IFNULL(away_win, 0) as away_win FROM 
-(select club.name as home_id , COUNT(fixture.away_id) as away_win 
-from fixture,result,club 
-where fixture.id = result.fixture_id 
-and club.id = fixture.away_id 
-AND result.away_score > result.home_score 
-GROUP by club.id 
-order by away_win DESC) home RIGHT JOIN club ON club.name = home.home_id 
+(SELECT home.home_id as home , club.name as away_id, IFNULL(away_win, 0) as away_win FROM
+(select club.name as home_id , COUNT(fixture.away_id) as away_win
+from fixture,result,club
+where fixture.id = result.fixture_id
+and club.id = fixture.away_id
+AND result.away_score > result.home_score
+GROUP by club.id
+order by away_win DESC) home RIGHT JOIN club ON club.name = home.home_id
 
-GROUP By club.name 
-ORDER BY away_win DESC) away 
-where home.home_id = away.away_id 
-ORDER BY Wins DESC) win , 
+GROUP By club.name
+ORDER BY away_win DESC) away
+where home.home_id = away.away_id
+ORDER BY Wins DESC) win ,
 
-(select home.home_id as home,home.home_lost + away.away_lost as Losses 
-from (SELECT club.name as home_id, IFNULL(home_lost , 0) as home_lost FROM 
-(select club.name as home_id , COUNT(fixture.home_id) as home_lost 
-from fixture,result,club 
-where fixture.id = result.fixture_id 
-and club.id = fixture.home_id 
-AND result.home_score < result.away_score 
-GROUP by club.id 
-order by home_lost DESC) home RIGHT JOIN club ON club.name = home.home_id 
+(select home.home_id as home,home.home_lost + away.away_lost as Losses
+from (SELECT club.name as home_id, IFNULL(home_lost , 0) as home_lost FROM
+(select club.name as home_id , COUNT(fixture.home_id) as home_lost
+from fixture,result,club
+where fixture.id = result.fixture_id
+and club.id = fixture.home_id
+AND result.home_score < result.away_score
+GROUP by club.id
+order by home_lost DESC) home RIGHT JOIN club ON club.name = home.home_id
 
-GROUP By club.name 
-ORDER BY home_lost DESC) home , 
+GROUP By club.name
+ORDER BY home_lost DESC) home ,
 
-(SELECT club.name as away_id, IFNULL(away_lost, 0) as away_lost FROM 
-(select club.name as home_id , COUNT(fixture.away_id) as away_lost 
-from fixture,result,club 
-where fixture.id = result.fixture_id 
-and club.id = fixture.away_id 
-AND result.away_score < result.home_score 
-GROUP by club.id 
-order by away_lost DESC) home RIGHT JOIN club ON club.name = home.home_id 
+(SELECT club.name as away_id, IFNULL(away_lost, 0) as away_lost FROM
+(select club.name as home_id , COUNT(fixture.away_id) as away_lost
+from fixture,result,club
+where fixture.id = result.fixture_id
+and club.id = fixture.away_id
+AND result.away_score < result.home_score
+GROUP by club.id
+order by away_lost DESC) home RIGHT JOIN club ON club.name = home.home_id
 
-GROUP By club.name 
-ORDER BY away_lost DESC) away 
-where home.home_id = away.away_id 
-ORDER BY Losses DESC) loss 
+GROUP By club.name
+ORDER BY away_lost DESC) away
+where home.home_id = away.away_id
+ORDER BY Losses DESC) loss
 
-where win.home = loss.home and win.home = draw.home and loss.home = draw.home 
+where win.home = loss.home and win.home = draw.home and loss.home = draw.home
 
 order by Points DESC`, function (err, rows, fields) {
     if (err) throw err
@@ -421,5 +418,5 @@ order by Points DESC`, function (err, rows, fields) {
   })
 })
 
-app.listen(3310, () => console.log('Server is running at http://localhost:3310'))
+app.listen(port, () => console.log(`Server is running at http://${host}:${port}`))
 
