@@ -44,12 +44,6 @@ app.get('/clubs/:id', (req, res) => {
   })
 })
 
-app.delete('/clubs/:id', (req, res) => {
-  connection.query('DELETE * from club where id =' + req.params.id, function (err, rows, fields) {
-    if (err) throw err
-    res.json(rows)
-  })
-})
 
 app.get('/players/:id', (req, res) => {
   connection.query(`
@@ -77,7 +71,7 @@ app.get('/players/:id', (req, res) => {
 })
 
 app.delete('/players/:id', (req, res) => {
-  connection.query('DELETE * from player where id =' + req.params.id, function (err, rows, fields) {
+  connection.query('DELETE from player where id =' + req.params.id, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
@@ -100,11 +94,19 @@ app.get('/managers/:id', (req, res) => {
 })
 
 app.delete('/managers/:id', (req, res) => {
-  connection.query('DELETE * from manager where id =' + req.params.id, function (err, rows, fields) {
+  connection.query('DELETE from manager where id =' + req.params.id, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
 })
+
+app.delete('/clubs/:id', function (req, res) {
+  var query = `
+    delete from club where id = ${req.params.id}`;
+  connection.query(query, function(err, rows, fields){
+    if (err) throw err
+    res.json(rows)
+  })
 
 app.get('/fixtures', (req, res) => {
   let sql = `
@@ -135,10 +137,11 @@ app.get('/fixtures/:id', (req, res) => {
 })
 
 app.delete('/fixtures/:id', (req, res) => {
-  connection.query('DELETE * from fixture where id=' + req.params.id, function (err, rows, fields) {
-    if (err) throw err
-    res.json(rows)
-  })
+  console.log('eqweq');
+  // connection.query('DELETE from fixture where id = ' + req.params.id, function (err, rows, fields) {
+  //   if (err) throw err
+  //   res.json(rows)
+  // })
 })
 
 app.get('/players', (req, res) => {
@@ -397,5 +400,10 @@ app.post('/results', (req, res) => {
   })
 })
 
+
+
+
+
+});
 
 app.listen(port, () => console.log(`Server is running at http://${host}:${port}`))
