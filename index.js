@@ -107,7 +107,7 @@ app.delete('/clubs/:id', function (req, res) {
     if (err) throw err
     res.json(rows)
   })
-
+})
 app.get('/fixtures', (req, res) => {
   let sql = `
     SELECT
@@ -137,11 +137,10 @@ app.get('/fixtures/:id', (req, res) => {
 })
 
 app.delete('/fixtures/:id', (req, res) => {
-  console.log('eqweq');
-  // connection.query('DELETE from fixture where id = ' + req.params.id, function (err, rows, fields) {
-  //   if (err) throw err
-  //   res.json(rows)
-  // })
+  connection.query('DELETE from fixture where id = ' + req.params.id, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
 })
 
 app.get('/players', (req, res) => {
@@ -170,10 +169,11 @@ app.get('/results', (req, res) => {
 })
 
 app.get('/datekickoff', (req, res) => {
-  connection.query(`select f.id, date(f.date) as DATE ,time(f.date) as 'KICK OFF', h.name as HOME , a.name as AWAY
-from result inner join fixture f on result.fixture_id = f.id ,(select name,id from club) h,(select name,id from club) a
-where  f.home_id = h.id and f.away_id = a.id
-ORDER BY f.id`, function (err, rows, fields) {
+  connection.query(`
+    select f.id, date(f.date) as DATE ,time(f.date) as 'KICK OFF', h.name as HOME , a.name as AWAY
+    from result inner join fixture f on result.fixture_id = f.id ,(select name,id from club) h,(select name,id from club) a
+    where  f.home_id = h.id and f.away_id = a.id
+    ORDER BY f.id`, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
@@ -181,20 +181,19 @@ ORDER BY f.id`, function (err, rows, fields) {
 
 app.get('/goals', (req, res) => {
   connection.query(`select home.home_id,home.homeSCORED + away.awaySCORED as SCORED
-from  (select club.name as home_id , SUM(h.home_score) as homeSCORED
+    from  (select club.name as home_id , SUM(h.home_score) as homeSCORED
          from fixture,(select fixture_id , home_score from result) h,club
-  where fixture.id = h.fixture_id and club.id = fixture.home_id
+         where fixture.id = h.fixture_id and club.id = fixture.home_id
         GROUP by club.id
-  order by homeSCORED DESC) home ,
-
+        order by homeSCORED DESC) home ,
      (select club.name as away_id , SUM(a.away_score) as awaySCORED
-  from fixture,(select fixture_id , away_score from result) a,club
-  where fixture.id = a.fixture_id and club.id = fixture.away_id
+     from fixture,(select fixture_id , away_score from result) a,club
+     where fixture.id = a.fixture_id and club.id = fixture.away_id
         GROUP by club.id
-  order by awaySCORED DESC) away
+        order by awaySCORED DESC) away
 
-where home.home_id = away.away_id
-limit 1000`, function (err, rows, fields) {
+        where home.home_id = away.away_id
+        limit 1000`, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
@@ -202,20 +201,20 @@ limit 1000`, function (err, rows, fields) {
 
 app.get('/goalsconcede', (req, res) => {
   connection.query(`select home.home_id,home.homeSCORED + away.awaySCORED as SCORED
-from  (select club.name as home_id , SUM(h.home_score) as homeSCORED
+    from  (select club.name as home_id , SUM(h.home_score) as homeSCORED
          from fixture,(select fixture_id , home_score from result) h,club
-  where fixture.id = h.fixture_id and club.id = fixture.away_id
+         where fixture.id = h.fixture_id and club.id = fixture.away_id
         GROUP by club.id
-  order by homeSCORED DESC) home ,
+        order by homeSCORED DESC) home ,
 
      (select club.name as away_id , SUM(a.away_score) as awaySCORED
-  from fixture,(select fixture_id , away_score from result) a,club
-  where fixture.id = a.fixture_id and club.id = fixture.home_id
+     from fixture,(select fixture_id , away_score from result) a,club
+     where fixture.id = a.fixture_id and club.id = fixture.home_id
         GROUP by club.id
-  order by awaySCORED DESC) away
+        order by awaySCORED DESC) away
 
-where home.home_id = away.away_id
-limit 1000`, function (err, rows, fields) {
+        where home.home_id = away.away_id
+        limit 1000`, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
@@ -224,39 +223,39 @@ limit 1000`, function (err, rows, fields) {
 app.get('/goalsdiff', (req, res) => {
   connection.query(`select allGoal.name , allGoal.SCORED - allGoalConcede.SCORED as DIFFERENT
 
-from (select home.home_id as name,home.homeSCORED + away.awaySCORED as SCORED
-from  (select club.name as home_id , SUM(h.home_score) as homeSCORED
+    from (select home.home_id as name,home.homeSCORED + away.awaySCORED as SCORED
+      from  (select club.name as home_id , SUM(h.home_score) as homeSCORED
          from fixture,(select fixture_id , home_score from result) h,club
-  where fixture.id = h.fixture_id and club.id = fixture.home_id
+         where fixture.id = h.fixture_id and club.id = fixture.home_id
         GROUP by club.id
-  order by homeSCORED DESC) home ,
+        order by homeSCORED DESC) home ,
 
      (select club.name as away_id , SUM(a.away_score) as awaySCORED
-  from fixture,(select fixture_id , away_score from result) a,club
-  where fixture.id = a.fixture_id and club.id = fixture.away_id
+     from fixture,(select fixture_id , away_score from result) a,club
+     where fixture.id = a.fixture_id and club.id = fixture.away_id
         GROUP by club.id
-  order by awaySCORED DESC) away
+        order by awaySCORED DESC) away
 
-where home.home_id = away.away_id) allGoal ,
+        where home.home_id = away.away_id) allGoal ,
 
-(select home.home_id as name ,home.homeSCORED + away.awaySCORED as SCORED
-from  (select club.name as home_id , SUM(h.home_score) as homeSCORED
+        (select home.home_id as name ,home.homeSCORED + away.awaySCORED as SCORED
+          from  (select club.name as home_id , SUM(h.home_score) as homeSCORED
          from fixture,(select fixture_id , home_score from result) h,club
-  where fixture.id = h.fixture_id and club.id = fixture.away_id
+         where fixture.id = h.fixture_id and club.id = fixture.away_id
         GROUP by club.id
-  order by homeSCORED DESC) home ,
+        order by homeSCORED DESC) home ,
 
      (select club.name as away_id , SUM(a.away_score) as awaySCORED
-  from fixture,(select fixture_id , away_score from result) a,club
-  where fixture.id = a.fixture_id and club.id = fixture.home_id
+     from fixture,(select fixture_id , away_score from result) a,club
+     where fixture.id = a.fixture_id and club.id = fixture.home_id
         GROUP by club.id
-  order by awaySCORED DESC) away
+        order by awaySCORED DESC) away
 
-where home.home_id = away.away_id) allGoalConcede
+        where home.home_id = away.away_id) allGoalConcede
 
-where allGoal.name = allGoalConcede.name
+        where allGoal.name = allGoalConcede.name
 
-order by DIFFERENT DESC`, function (err, rows, fields) {
+        order by DIFFERENT DESC`, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
@@ -327,8 +326,7 @@ app.get('/points', (req, res) => {
 
     WHERE win.club = loss.club and win.club = draw.club and loss.club = draw.club
     ORDER by points DESC
-    LIMIT 1000
-`, function (err, rows, fields) {
+    LIMIT 1000`, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
@@ -385,7 +383,7 @@ app.post('/managers', (req, res) => {
 app.post('/fixtures', (req, res) => {
   var query = `
     insert into fixture values(${req.body.id},${req.body.date},${req.body.home_id},${req.body.away_id})`;
-  connection.query(query, function(err, rows, fields){
+  connection.query(query, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
@@ -394,16 +392,10 @@ app.post('/fixtures', (req, res) => {
 app.post('/results', (req, res) => {
   var query = `
     insert into result values(${req.body.fixture_id},'${req.body.referee_name}',${req.body.attendance},${req.body.home_score},${req.body.away_score})`;
-  connection.query(query, function(err, rows, fields){
+  connection.query(query, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
 })
-
-
-
-
-
-});
 
 app.listen(port, () => console.log(`Server is running at http://${host}:${port}`))
