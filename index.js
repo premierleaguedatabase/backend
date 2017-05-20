@@ -44,7 +44,7 @@ app.delete('/clubs/:id', (req, res) => {
 
 app.get('/players/:id', (req, res) => {
   connection.query(`
-    SELECT 
+    SELECT
       player.id AS id,
       player.number AS number,
       player.name AS name,
@@ -252,11 +252,11 @@ order by DIFFERENT DESC`, function (err, rows, fields) {
 
 app.get('/draws', (req, res) => {
   connection.query(`
-    SELECT club.name AS club , COUNT(fixture.home_id) AS draws 
-    FROM fixture,result,club 
-    WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score = result.away_score) 
-    OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score = result.away_score) 
-    GROUP BY club.id 
+    SELECT club.name AS club , COUNT(fixture.home_id) AS draws
+    FROM fixture,result,club
+    WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score = result.away_score)
+    OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score = result.away_score)
+    GROUP BY club.id
     ORDER BY draws DESC`, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
@@ -265,11 +265,11 @@ app.get('/draws', (req, res) => {
 
 app.get('/wins', (req, res) => {
   connection.query(`
-    SELECT club.name AS club , COUNT(fixture.home_id) AS wins 
-    FROM fixture,result,club 
-    WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score > result.away_score) 
-    OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score < result.away_score) 
-    GROUP BY club.id 
+    SELECT club.name AS club , COUNT(fixture.home_id) AS wins
+    FROM fixture,result,club
+    WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score > result.away_score)
+    OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score < result.away_score)
+    GROUP BY club.id
     ORDER BY wins DESC`, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
@@ -278,11 +278,11 @@ app.get('/wins', (req, res) => {
 
 app.get('/loses', (req, res) => {
   connection.query(`
-    SELECT club.name AS club , COUNT(fixture.home_id) AS losses 
-    FROM fixture,result,club 
-    WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score < result.away_score) 
-    OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score > result.away_score) 
-    GROUP BY club.id 
+    SELECT club.name AS club , COUNT(fixture.home_id) AS losses
+    FROM fixture,result,club
+    WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score < result.away_score)
+    OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score > result.away_score)
+    GROUP BY club.id
     ORDER BY losses DESC`, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
@@ -291,30 +291,30 @@ app.get('/loses', (req, res) => {
 
 app.get('/points', (req, res) => {
   connection.query(`
-    SELECT win.club as clubs, win.wins , draw.draws , loss.losses , (win.wins * 3) + draw.draws as points 
-    FROM (SELECT club.name AS club , COUNT(fixture.home_id) AS draws 
-    FROM fixture,result,club 
-    WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score = result.away_score) 
-    OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score = result.away_score) 
-    GROUP BY club.id 
-    ORDER BY draws DESC) draw , 
+    SELECT win.club as clubs, win.wins , draw.draws , loss.losses , (win.wins * 3) + draw.draws as points
+    FROM (SELECT club.name AS club , COUNT(fixture.home_id) AS draws
+    FROM fixture,result,club
+    WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score = result.away_score)
+    OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score = result.away_score)
+    GROUP BY club.id
+    ORDER BY draws DESC) draw ,
 
-    (SELECT club.name AS club , COUNT(fixture.home_id) AS wins 
-    FROM fixture,result,club 
-    WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score > result.away_score) 
-    OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score < result.away_score) 
-    GROUP BY club.id 
-    ORDER BY wins DESC) win , 
+    (SELECT club.name AS club , COUNT(fixture.home_id) AS wins
+    FROM fixture,result,club
+    WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score > result.away_score)
+    OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score < result.away_score)
+    GROUP BY club.id
+    ORDER BY wins DESC) win ,
 
-    (SELECT club.name AS club , COUNT(fixture.home_id) AS losses 
-    FROM fixture,result,club 
-    WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score < result.away_score) 
-    OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score > result.away_score) 
-    GROUP BY club.id 
-    ORDER BY losses DESC) loss 
+    (SELECT club.name AS club , COUNT(fixture.home_id) AS losses
+    FROM fixture,result,club
+    WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score < result.away_score)
+    OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score > result.away_score)
+    GROUP BY club.id
+    ORDER BY losses DESC) loss
 
-    WHERE win.club = loss.club and win.club = draw.club and loss.club = draw.club 
-    ORDER by points DESC 
+    WHERE win.club = loss.club and win.club = draw.club and loss.club = draw.club
+    ORDER by points DESC
     LIMIT 1000
 `, function (err, rows, fields) {
     if (err) throw err
@@ -326,6 +326,16 @@ app.get('/referees', (req, res) => {
   const sql = makeAnSQLStatement(req.query, 'referee')
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.post('/clubs', function (req, res) {
+  //console.log('dsds', req.body.name);
+  var query = `
+    insert into club values(${req.body.id},'${req.body.name}','${req.body.stadium_name}','${req.body.official_site}',${req.body.manager_id})`;
+  connection.query(query,function(err,rows,fields){
     if (err) throw err
     res.json(rows)
   })
