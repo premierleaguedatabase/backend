@@ -15,7 +15,7 @@ app.use(bodyParser.json())
 app.use(cors())
 app.use(logger)
 
-const connection = mysql.createConnection({ host, user, password, database });
+const connection = mysql.createConnection({ host, user, password, database })
 
 connection.connect()
 
@@ -42,9 +42,26 @@ app.delete('/clubs/:id', (req, res) => {
   })
 })
 
-
 app.get('/players/:id', (req, res) => {
-  connection.query('SELECT * from player where id =' + req.params.id, function (err, rows, fields) {
+  connection.query(`
+    SELECT 
+      player.id AS id,
+      player.number AS number,
+      player.name AS name,
+      player.position AS position,
+      player.nationality AS nationality,
+      player.dob AS dob,
+      player.height AS height,
+      player.weight AS weight,
+      club.name AS 'clubName',
+      club.id AS 'clubId'
+    FROM
+      player
+    INNER JOIN
+      club ON player.club_id = club.id
+    WHERE
+      player.id = ${req.params.id}
+    `, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
@@ -91,7 +108,7 @@ app.get('/fixtures', (req, res) => {
     INNER JOIN
       club As away_club ON away_club.id = f.away_id
   `
-  isQueryHaveAPageAndLimit(req.query)
+  sql = isQueryHaveAPageAndLimit(req.query)
     ? sql += applyLimitAndOffset(req.query)
     : sql
   console.log(sql)
@@ -119,9 +136,8 @@ app.get('/players', (req, res) => {
   const sql = makeAnSQLStatement(req.query, 'player')
   console.log(sql)
   connection.query(sql, (err, players) => {
-    if(err) return res.json({ message: err.stack })
-    const result = { players, page: 1, size: players.length }
-    res.json(result)
+    if (err) return res.json({ message: err.stack })
+    res.json(players)
   })
 })
 
@@ -132,16 +148,14 @@ app.get('/results', (req, res) => {
     WHERE f.home_id = h.id AND f.away_id = a.id
     ORDER BY f.id DESC
   `
-  isQueryHaveAPageAndLimit(req.query)
+  sql = isQueryHaveAPageAndLimit(req.query)
     ? sql += applyLimitAndOffset(req.query)
     : sql
   connection.query(sql, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
-
 })
-
 
 app.get('/datekickoff', (req, res) => {
   connection.query(`select f.id, date(f.date) as DATE ,time(f.date) as 'KICK OFF', h.name as HOME , a.name as AWAY
@@ -337,7 +351,7 @@ LIMIT 1000`, function (err, rows, fields) {
 
 app.get('/points', (req, res) => {
   connection.query(`
-SELECT win.id , win.home as Clubs, win.Wins , draw.Draws , loss.losses , (win.Wins * 3)+draw.Draws as Points
+SELECT win.id as 'clubId' , win.home as 'clubName', win.Wins as 'win' , draw.Draws as 'draw' , loss.losses as 'loss' , (win.Wins * 3)+draw.Draws as 'point'
 from
 (select home.home_id as home ,home.home_draw + away.away_draw as Draws
 from (SELECT club.name as home_id, IFNULL(home_draw , 0) as home_draw FROM
@@ -422,7 +436,7 @@ ORDER BY Losses DESC) loss
 
 where win.home = loss.home and win.home = draw.home and loss.home = draw.home
 
-order by Points DESC
+ORDER BY point DESC
 `, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
@@ -439,4 +453,3 @@ app.get('/referees', (req, res) => {
 })
 
 app.listen(port, () => console.log(`Server is running at http://${host}:${port}`))
-
