@@ -362,7 +362,7 @@ app.post('/clubs', (req, res) => {
 
 app.post('/players', (req, res) => {
   var query = `
-    insert into player values(${req.body.id}.'${req.body.number}','${req.body.name}','${req.body.club_id}','${req.body.position}',
+    insert into player values(${req.body.id},${req.body.number},'${req.body.name}','${req.body.club_id}','${req.body.position}',
     '${req.body.nationality}','${req.body.dob}','${req.body.height}','${req.body.weight}')`;
   connection.query(query, function(err, rows, fields){
     if (err) throw err
@@ -372,7 +372,7 @@ app.post('/players', (req, res) => {
 
 app.post('/managers', (req, res) => {
   var query = `
-    insert into manager values(${req.body.id}.'${req.body.name}','${req.body.country_of_birth}','${req.body.dob}')`;
+    insert into manager values(${req.body.id},'${req.body.name}','${req.body.country_of_birth}','${req.body.dob}')`;
   connection.query(query, function(err, rows, fields){
     if (err) throw err
     res.json(rows)
@@ -381,7 +381,7 @@ app.post('/managers', (req, res) => {
 
 app.post('/fixtures', (req, res) => {
   var query = `
-    insert into fixture values(${req.body.id}.'${req.body.date}','${req.body.homeId}','${req.body.awayId}','${req.body.homeName}','${req.body.awayName}')`;
+    insert into fixture values(${req.body.id},${req.body.date},${req.body.home_id},${req.body.away_id})`;
   connection.query(query, function(err, rows, fields){
     if (err) throw err
     res.json(rows)
@@ -390,12 +390,12 @@ app.post('/fixtures', (req, res) => {
 
 app.post('/results', (req, res) => {
   var query = `
-    insert into result values(${req.body.fixtureId}.'${req.body.date}','${req.body.homeId}','${req.body.homeName}','${req.body.awayName}','${req.body.awayId}',
-      '${req.body.homeGoal}','${req.body.awayGoal}')`;
+    insert into result values(${req.body.fixture_id},'${req.body.referee_name}',${req.body.attendance},${req.body.home_score},${req.body.away_score})`;
   connection.query(query, function(err, rows, fields){
     if (err) throw err
     res.json(rows)
   })
 })
+
 
 app.listen(port, () => console.log(`Server is running at http://${host}:${port}`))
