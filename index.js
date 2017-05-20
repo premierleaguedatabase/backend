@@ -28,6 +28,15 @@ app.get('/clubs', (req, res) => {
   })
 })
 
+app.get('/events', (req, res) => {
+  const sql = makeAnSQLStatement(req.query, 'event')
+  console.log(sql)
+  connection.query(sql, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
 app.get('/clubs/:id', (req, res) => {
   connection.query('SELECT * from club where id =' + req.params.id, function (err, rows, fields) {
     if (err) throw err
@@ -331,6 +340,16 @@ app.get('/referees', (req, res) => {
   })
 })
 
+app.post('/events', function (req, res) {
+  //console.log('dsds', req.body.name);
+  var query = `
+    insert into event values(${req.body.id},${req.body.fixture_id},'${req.body.min}','${req.body.type}','${req.body.player_id}')`;
+  connection.query(query,function(err,rows,fields){
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
 app.post('/clubs', function (req, res) {
   //console.log('dsds', req.body.name);
   var query = `
@@ -340,5 +359,6 @@ app.post('/clubs', function (req, res) {
     res.json(rows)
   })
 })
+
 
 app.listen(port, () => console.log(`Server is running at http://${host}:${port}`))
