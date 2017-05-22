@@ -475,10 +475,10 @@ app.put('/referees', function (req, res) {
   })
 })
 
-app.put('/referees', function (req, res) {
+app.put('/extras', function (req, res) {
   var query = `
-    UPDATE referee SET name = '${req.body.name}', bio = '${req.body.bio}'
-    WHERE id = ${req.body.id}`;
+    UPDATE extra SET fixture_id = '${req.body.fixture_id}', player_id = '${req.body.player_id}'
+    WHERE event_id = ${req.body.event_id}`;
   connection.query(query, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
