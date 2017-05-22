@@ -29,7 +29,7 @@ app.get('/clubs', (req, res) => {
 })
 
 app.get('/events', (req, res) => {
-  const sql = makeAnSQLStatement(req.query, 'event')
+  const sql = 'select * from event, extra where event.id = extra.event_id'
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
     if (err) throw err
@@ -101,13 +101,13 @@ app.delete('/managers/:id', (req, res) => {
 })
 
 app.delete('/clubs/:id', function (req, res) {
-  var query = `
-    delete from club where id = ${req.params.id}`;
+  var query = `delete from club where id = ${req.params.id}`;
   connection.query(query, function(err, rows, fields){
     if (err) throw err
     res.json(rows)
   })
 })
+
 app.get('/fixtures', (req, res) => {
   let sql = `
     SELECT
@@ -382,7 +382,7 @@ app.post('/managers', (req, res) => {
 
 app.post('/fixtures', (req, res) => {
   var query = `
-    insert into fixture values(${req.body.id},${req.body.date},${req.body.home_id},${req.body.away_id})`;
+    insert into fixture values(${req.body.id},'${req.body.date}',${req.body.home_id},${req.body.away_id})`;
   connection.query(query, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
@@ -392,6 +392,93 @@ app.post('/fixtures', (req, res) => {
 app.post('/results', (req, res) => {
   var query = `
     insert into result values(${req.body.fixture_id},'${req.body.referee_name}',${req.body.attendance},${req.body.home_score},${req.body.away_score})`;
+  connection.query(query, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.put('/players', function (req, res) {
+  // var query = 'UPDATE player SET number = '+req.body.number+', name = '+req.body.name+', club_id ='+req.body.club_id+'
+  // , position = '+req.body.position+' , nationality = '+req.body.nationality+', dob = '+req.body.dob+'
+  // , height = '+req.body.height+', weight = '+req.body.weight+' WHERE id = '+req.body.id;
+
+  var query = `
+    UPDATE player SET number = ${req.body.number}, name = '${req.body.name}',club_id = '${req.body.club_id}' , position = '${req.body.position}',
+    nationality = '${req.body.nationality}',dob = '${req.body.dob}',height = '${req.body.height}',weight = '${req.body.weight}'
+    WHERE id = ${req.body.id}`;
+  connection.query(query, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+app.put('/fixtures', function (req, res) {
+
+  var query = `
+    UPDATE fixture SET date = '${req.body.date}', home_id = ${req.body.home_id},away_id = ${req.body.away_id}
+    WHERE id = ${req.body.id}`;
+  connection.query(query, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.put('/managers', function (req, res) {
+
+  var query = `
+    UPDATE manager SET name = '${req.body.name}', country_of_birth = '${req.body.country_of_birth}',dob = '${req.body.dob}'
+    WHERE id = ${req.body.id}`;
+  connection.query(query, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.put('/clubs', function (req, res) {
+
+  var query = `
+    UPDATE club SET name = '${req.body.name}', stadium_name = '${req.body.stadium_name}',official_site = '${req.body.official_site}' , manager_id = ${req.body.manager_id}
+    WHERE id = ${req.body.id}`;
+  connection.query(query, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.put('/events', function (req, res) {
+  var query = `
+    UPDATE event SET fixture_id = '${req.body.fixture_id}', min = '${req.body.min}',type = '${req.body.type}' , player_id = ${req.body.player_id}
+    WHERE id = ${req.body.id}`;
+  connection.query(query, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.put('/results', function (req, res) {
+  var query = `
+    UPDATE result SET referee_name = '${req.body.referee_name}', attendance = '${req.body.attendance}',home_score = '${req.body.home_score}' , away_score = ${req.body.away_score}
+    WHERE fixture_id = ${req.body.fixture_id}`;
+  connection.query(query, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.put('/referees', function (req, res) {
+  var query = `
+    UPDATE referee SET name = '${req.body.name}', bio = '${req.body.bio}'
+    WHERE id = ${req.body.id}`;
+  connection.query(query, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.put('/referees', function (req, res) {
+  var query = `
+    UPDATE referee SET name = '${req.body.name}', bio = '${req.body.bio}'
+    WHERE id = ${req.body.id}`;
   connection.query(query, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
