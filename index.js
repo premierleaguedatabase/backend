@@ -302,7 +302,7 @@ app.get('/loses', (req, res) => {
 
 app.get('/points', (req, res) => {
   connection.query(`
-    SELECT win.club as clubs, win.wins , draw.draws , loss.losses , (win.wins * 3) + draw.draws as points
+    SELECT win.club as clubs, played.played, win.wins , draw.draws , loss.losses , (win.wins * 3) + draw.draws as points
     FROM (SELECT club.name AS club , COUNT(fixture.home_id) AS draws
     FROM fixture,result,club
     WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score = result.away_score)
@@ -322,9 +322,16 @@ app.get('/points', (req, res) => {
     WHERE (fixture.id = result.fixture_id AND club.id = fixture.home_id AND result.home_score < result.away_score)
     OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score > result.away_score)
     GROUP BY club.id
-    ORDER BY losses DESC) loss
+    ORDER BY losses DESC) loss ,
 
-    WHERE win.club = loss.club and win.club = draw.club and loss.club = draw.club
+    (SELECT club.name AS clubName, COUNT(club.id) AS played
+    FROM fixture, result, club
+    WHERE fixture.id = result.fixture_id
+    AND (club.id = fixture.home_id OR club.id = fixture.away_id)
+    GROUP BY club.id
+    ORDER BY played DESC) played
+
+    WHERE win.club = loss.club AND win.club = draw.club AND loss.club = draw.club AND played.clubName = win.club
     ORDER by points DESC
     LIMIT 1000`, function (err, rows, fields) {
     if (err) throw err
@@ -480,6 +487,78 @@ app.put('/extras', function (req, res) {
     UPDATE extra SET fixture_id = '${req.body.fixture_id}', player_id = '${req.body.player_id}'
     WHERE event_id = ${req.body.event_id}`;
   connection.query(query, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.get('/players/:id/goals', (req, res) => {
+  const sql = `SELECT event.player_id AS playerId, COUNT(event.type) AS goals
+  FROM event
+WHERE event.type = 'goal' AND event.player_id = ${req.params.id}
+GROUP BY event.player_id
+ORDER BY goals DESC`;
+  connection.query(sql, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.get('/players/:id/assist', (req, res) => {
+  const sql = `SELECT extra.player_id AS playerId,count(extra.player_id) AS assist
+FROM extra,event
+WHERE event.id  = extra.event_id AND event.type = 'goal' AND extra.player_id = ${req.params.id}
+GROUP BY extra.player_id
+ORDER BY assist DESC`;
+  connection.query(sql, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.get('/players/:id/offside', (req, res) => {
+  const sql = `SELECT event.player_id AS playerId, COUNT(event.type) AS offside
+FROM event
+WHERE event.type = 'offside' AND event.player_id = ${req.params.id}
+GROUP BY event.player_id
+ORDER BY offside DESC`;
+  connection.query(sql, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.get('/players/:id/fouls', (req, res) => {
+  const sql = `SELECT event.player_id AS playerId, COUNT(event.type) AS fouls
+FROM event
+WHERE event.type in ('penalty lost','free kick lost','offside') AND event.player_id = ${req.params.id}
+GROUP BY event.player_id
+ORDER BY fouls DESC`;
+  connection.query(sql, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.get('/players/:id/yellowCard', (req, res) => {
+  const sql = `SELECT event.player_id AS playerId, COUNT(event.type) AS yellowCard
+FROM event
+WHERE event.type = 'yellow card' AND event.player_id = ${req.params.id}
+GROUP BY event.player_id
+ORDER BY yellowCard`;
+  connection.query(sql, function (err, rows, fields) {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+app.get('/players/:id/redCard', (req, res) => {
+  const sql = `SELECT event.player_id, COUNT(event.type) AS redCard
+FROM event
+WHERE event.type = 'red card' AND event.player_id = ${req.params.id}
+GROUP BY event.player_id
+ORDER BY redCard DESC`;
+  connection.query(sql, function (err, rows, fields) {
     if (err) throw err
     res.json(rows)
   })
