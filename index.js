@@ -39,7 +39,7 @@ app.get('/clubs', (req, res) => {
   const sql = makeAnSQLStatement(req.query, 'club')
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -48,7 +48,7 @@ app.get('/events', (req, res) => {
   const sql = 'SELECT * FROM event, extra WHERE event.id = extra.event_id'
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -59,7 +59,7 @@ app.get('/clubs/:id', (req, res) => {
   `
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -86,7 +86,7 @@ app.get('/players/:id', (req, res) => {
   `
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -95,7 +95,7 @@ app.delete('/players/:id', (req, res) => {
   const sql = `DELETE FROM player WHERE id = ${req.params.id}`
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -104,7 +104,7 @@ app.get('/managers', (req, res) => {
   const sql = makeAnSQLStatement(req.query, 'manager')
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -115,7 +115,7 @@ app.get('/managers/:id', (req, res) => {
   `
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -126,7 +126,7 @@ app.delete('/managers/:id', (req, res) => {
   `
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -137,7 +137,7 @@ app.delete('/clubs/:id', function (req, res) {
   `
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -157,13 +157,14 @@ app.get('/fixtures', (req, res) => {
       club AS home_club ON home_club.id = f.home_id
     INNER JOIN
       club As away_club ON away_club.id = f.away_id
+    ORDER BY id DESC
   `
   sql = isQueryHaveAPageAndLimit(req.query)
     ? sql += applyLimitAndOffset(req.query)
     : sql
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -174,7 +175,7 @@ app.get('/fixtures/:id', (req, res) => {
   `
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -185,7 +186,7 @@ app.delete('/fixtures/:id', (req, res) => {
   `
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -227,7 +228,7 @@ app.get('/results', (req, res) => {
     : sql
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -252,7 +253,7 @@ app.get('/datekickoff', (req, res) => {
   `
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -302,7 +303,7 @@ app.get('/goals', (req, res) => {
     `
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -323,7 +324,7 @@ app.get('/goalsconcede', (req, res) => {
 
         where home.home_id = away.away_id
         limit 1000`, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -364,7 +365,7 @@ app.get('/goalsdiff', (req, res) => {
         where allGoal.name = allGoalConcede.name
 
         order by DIFFERENT DESC`, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -377,7 +378,7 @@ app.get('/draws', (req, res) => {
     OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score = result.away_score)
     GROUP BY club.id
     ORDER BY draws DESC`, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -390,7 +391,7 @@ app.get('/wins', (req, res) => {
     OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score < result.away_score)
     GROUP BY club.id
     ORDER BY wins DESC`, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -403,7 +404,7 @@ app.get('/loses', (req, res) => {
     OR (fixture.id = result.fixture_id AND club.id = fixture.away_id AND result.home_score > result.away_score)
     GROUP BY club.id
     ORDER BY losses DESC`, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -442,7 +443,7 @@ app.get('/points', (req, res) => {
     WHERE win.club = loss.club AND win.club = draw.club AND loss.club = draw.club AND played.clubName = win.club
     ORDER by points DESC
     LIMIT 1000`, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -451,7 +452,7 @@ app.get('/referees', (req, res) => {
   const sql = makeAnSQLStatement(req.query, 'referee')
   console.log(sql)
   connection.query(sql, (err, rows, fields) => {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -461,7 +462,7 @@ app.post('/events', function (req, res) {
     INSERT INTO event VALUES(${req.body.id},${req.body.fixture_id},'${req.body.min}','${req.body.type}','${req.body.player_id}')
   `
   connection.query(sql, (err, rows, fields) => {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -470,7 +471,7 @@ app.post('/clubs', (req, res) => {
   var query = `
     insert into club values(${req.body.id},'${req.body.name}','${req.body.stadium_name}','${req.body.official_site}',${req.body.manager_id})`
   connection.query(query, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -480,7 +481,7 @@ app.post('/players', (req, res) => {
     insert into player values(${req.body.id},${req.body.number},'${req.body.name}','${req.body.club_id}','${req.body.position}',
     '${req.body.nationality}','${req.body.dob}','${req.body.height}','${req.body.weight}')`
   connection.query(query, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -489,7 +490,7 @@ app.post('/managers', (req, res) => {
   var query = `
     insert into manager values(${req.body.id},'${req.body.name}','${req.body.country_of_birth}','${req.body.dob}')`
   connection.query(query, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -498,7 +499,7 @@ app.post('/fixtures', (req, res) => {
   var query = `
     insert into fixture values(${req.body.id},'${req.body.date}',${req.body.home_id},${req.body.away_id})`
   connection.query(query, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -507,7 +508,7 @@ app.post('/results', (req, res) => {
   var query = `
     insert into result values(${req.body.fixture_id},'${req.body.referee_name}',${req.body.attendance},${req.body.home_score},${req.body.away_score})`
   connection.query(query, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -518,7 +519,7 @@ app.post('/results', (req, res) => {
     nationality = '${req.body.nationality}',dob = '${req.body.dob}',height = '${req.body.height}',weight = '${req.body.weight}'
     WHERE id = ${req.body.id}`
   connection.query(query, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -535,7 +536,7 @@ app.put('/fixtures', (req, res) => {
       id = ${req.body.id}
   `
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -552,7 +553,7 @@ app.put('/managers', (req, res) => {
       id = ${req.body.id}
   `
   connection.query(query, (err, rows, fields) => {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -569,7 +570,7 @@ app.put('/clubs', (req, res) => {
     WHERE
       id = ${req.body.id}`
   connection.query(sql, (err, rows, fields) => {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -586,7 +587,7 @@ app.put('/events', function (req, res) {
     WHERE
       id = ${req.body.id}`
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -605,7 +606,7 @@ app.put('/results', (req, res) => {
   `
   console.log(sql)
   connection.query(sql, (err, rows, fields) => {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -620,7 +621,7 @@ app.put('/referees', (req, res) => {
       id = ${req.body.id}
   `
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -630,7 +631,7 @@ app.put('/extras', function (req, res) {
     UPDATE extra SET fixture_id = '${req.body.fixture_id}', player_id = '${req.body.player_id}'
     WHERE event_id = ${req.body.event_id}`
   connection.query(query, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -649,7 +650,7 @@ app.get('/players/:id/goals', (req, res) => {
   `
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -668,7 +669,7 @@ app.get('/players/:id/assist', (req, res) => {
   `
   console.log(sql)
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -685,7 +686,7 @@ app.get('/players/:id/offside', (req, res) => {
     GROUP BY event.player_id
     ORDER BY offside DESC`
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -702,7 +703,7 @@ app.get('/players/:id/fouls', (req, res) => {
       GROUP BY event.player_id
       ORDER BY fouls DESC`
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -721,7 +722,7 @@ app.get('/players/:id/yellowCard', (req, res) => {
     ORDER BY
       yellowCard`
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
@@ -739,7 +740,7 @@ app.get('/players/:id/redCard', (req, res) => {
     ORDER BY redCard DESC
   `
   connection.query(sql, function (err, rows, fields) {
-    if (err) throw err
+    if (err) console.error(err)
     res.json(rows)
   })
 })
